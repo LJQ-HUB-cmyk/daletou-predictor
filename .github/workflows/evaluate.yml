@@ -43,4 +43,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(data): evaluate latest draw"
-          file_pattern: data/**/*.json data/*.db
+          file_pattern: data/**/*.json data/*.db data/lstm_state.pt data/lstm_meta.json
