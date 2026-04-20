@@ -200,7 +200,9 @@ button {
 .model-badge[data-model="frequency"] { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
 .model-badge[data-model="bayesian"] { background: rgba(6, 182, 212, 0.2); color: #67e8f9; }
 .model-badge[data-model="markov"] { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+.model-badge[data-model="xgboost"] { background: rgba(132, 204, 22, 0.2); color: #bef264; }
 .model-badge[data-model="lstm"] { background: rgba(236, 72, 153, 0.2); color: #f9a8d4; }
+.model-badge[data-model="transformer"] { background: rgba(244, 63, 94, 0.2); color: #fda4af; }
 .model-badge[data-model="genetic"] { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
 .model-badge[data-model="ensemble"] { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
 

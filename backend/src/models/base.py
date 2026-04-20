@@ -11,6 +11,7 @@ import pandas as pd
 
 from ..config import TICKETS_PER_DRAW
 from ..utils.numbers import validate_ticket
+from .filters import CombinationFilter
 
 
 @dataclass
@@ -31,6 +32,7 @@ class BaseModel(ABC):
     """
 
     name: str = "base"
+    use_filter: bool = True  # 是否启用组合筛选器（子类可覆盖）
 
     @abstractmethod
     def _predict_one(self, history: pd.DataFrame, seed: int) -> Ticket:
@@ -44,7 +46,7 @@ class BaseModel(ABC):
 
     def predict(self, history: pd.DataFrame, n: int = TICKETS_PER_DRAW) -> List[Ticket]:
         """
-        生成 n 注投注，保证每注合法且彼此不同
+        生成 n 注投注，保证每注合法且彼此不同，并尽量满足历史合理区间
 
         @param history 历史数据
         @param n 投注数
@@ -53,12 +55,22 @@ class BaseModel(ABC):
         tickets: List[Ticket] = []
         seed = 0
         seen: set[Tuple[Tuple[int, ...], Tuple[int, ...]]] = set()
-        while len(tickets) < n and seed < 10_000:
+        combo_filter = CombinationFilter(history) if self.use_filter else None
+        # 先尝试严格通过筛选器，不够再回退接受所有合法组合
+        strict_budget = 5_000
+        total_budget = 10_000
+        while len(tickets) < n and seed < total_budget:
             t = self._predict_one(history, seed)
             key = (tuple(sorted(t.front)), tuple(sorted(t.back)))
             if t.valid() and key not in seen:
-                tickets.append(t)
-                seen.add(key)
+                is_reasonable = (
+                    combo_filter.is_reasonable(t.front, t.back)
+                    if combo_filter is not None
+                    else True
+                )
+                if is_reasonable or seed >= strict_budget:
+                    tickets.append(t)
+                    seen.add(key)
             seed += 1
         if len(tickets) < n:
             raise RuntimeError(f"{self.name} 模型生成投注失败")

@@ -42,7 +42,9 @@ MODELS = [
     "frequency",
     "bayesian",
     "markov",
+    "xgboost",
     "lstm",
+    "transformer",
     "genetic",
     "ensemble",
 ]
@@ -52,7 +54,9 @@ MODEL_LABELS = {
     "frequency": "频率统计",
     "bayesian": "贝叶斯",
     "markov": "马尔可夫链",
+    "xgboost": "XGBoost",
     "lstm": "LSTM 神经网络",
+    "transformer": "Transformer",
     "genetic": "遗传算法",
     "ensemble": "集成投票",
 }

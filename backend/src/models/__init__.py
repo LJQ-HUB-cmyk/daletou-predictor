@@ -9,6 +9,8 @@ from .genetic_model import GeneticModel
 from .lstm_model import LSTMModel
 from .markov_model import MarkovModel
 from .random_model import RandomModel
+from .transformer_model import TransformerModel
+from .xgboost_model import XGBoostModel
 
 
 def get_model(name: str, **kwargs) -> BaseModel:
@@ -24,7 +26,9 @@ def get_model(name: str, **kwargs) -> BaseModel:
         "frequency": FrequencyModel,
         "bayesian": BayesianModel,
         "markov": MarkovModel,
+        "xgboost": XGBoostModel,
         "lstm": LSTMModel,
+        "transformer": TransformerModel,
         "genetic": GeneticModel,
         "ensemble": EnsembleModel,
     }
@@ -40,7 +44,9 @@ __all__ = [
     "FrequencyModel",
     "BayesianModel",
     "MarkovModel",
+    "XGBoostModel",
     "LSTMModel",
+    "TransformerModel",
     "GeneticModel",
     "EnsembleModel",
     "get_model",

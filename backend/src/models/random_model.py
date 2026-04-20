@@ -15,6 +15,7 @@ class RandomModel(BaseModel):
     """
 
     name = "random"
+    use_filter = False  # 对照组：保持完全随机，不做筛选
 
     def _predict_one(self, history: pd.DataFrame, seed: int) -> Ticket:
         rng = random.Random(f"random-{len(history)}-{seed}")

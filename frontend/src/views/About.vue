@@ -18,7 +18,7 @@
     </section>
 
     <section class="card section">
-      <h2>2. 七个模型简介</h2>
+      <h2>2. 九个模型简介</h2>
       <div class="models">
         <div class="model-item">
           <span class="model-badge" data-model="random">随机基线</span>
@@ -31,6 +31,14 @@
         <div class="model-item">
           <span class="model-badge" data-model="bayesian">贝叶斯</span>
           <p>对每个号码建立独立的 Beta-Bernoulli 后验分布。带时间衰减，规范的频率派推断。</p>
+        </div>
+        <div class="model-item">
+          <span class="model-badge" data-model="xgboost">XGBoost</span>
+          <p>对每个号码单独训练 gradient boosting 二分类器，输入包含遗漏值、近期出现序列、组合手工特征、销量/奖池/周几/月份。</p>
+        </div>
+        <div class="model-item">
+          <span class="model-badge" data-model="transformer">Transformer</span>
+          <p>多头自注意力 + 位置编码，捕捉跨期号码相关性。支持 checkpoint + 增量微调。</p>
         </div>
         <div class="model-item">
           <span class="model-badge" data-model="markov">马尔可夫链</span>
@@ -249,7 +257,9 @@
 .model-badge[data-model="frequency"] { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
 .model-badge[data-model="bayesian"] { background: rgba(6, 182, 212, 0.2); color: #67e8f9; }
 .model-badge[data-model="markov"] { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+.model-badge[data-model="xgboost"] { background: rgba(132, 204, 22, 0.2); color: #bef264; }
 .model-badge[data-model="lstm"] { background: rgba(236, 72, 153, 0.2); color: #f9a8d4; }
+.model-badge[data-model="transformer"] { background: rgba(244, 63, 94, 0.2); color: #fda4af; }
 .model-badge[data-model="genetic"] { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
 .model-badge[data-model="ensemble"] { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
 </style>
