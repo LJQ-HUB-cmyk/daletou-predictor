@@ -15,12 +15,14 @@ from ..utils.numbers import count_hits, encode
 from .dataio import load_history
 
 
-def run_backtest(start_idx: int = -200, force: bool = False) -> None:
+def run_backtest(start_idx: int = -200, force: bool = False,
+                 only: list[str] | None = None) -> None:
     """
     对历史数据做滚动回测
 
     @param start_idx 起始索引（负数表示倒数第 N 期开始回测）
     @param force 是否覆盖已存在的预测与评估
+    @param only 仅跑指定模型（None = 全部）
     """
     init_db()
     history = load_history()
@@ -33,7 +35,12 @@ def run_backtest(start_idx: int = -200, force: bool = False) -> None:
     start_idx = max(start_idx, 50)
 
     issues_to_test = history.iloc[start_idx:]
-    print(f"回测：从期号 {issues_to_test.iloc[0]['issue']} 到 {issues_to_test.iloc[-1]['issue']}，共 {len(issues_to_test)} 期")
+    active_models = [m for m in MODELS if (not only) or m in only]
+    print(
+        f"回测：从期号 {issues_to_test.iloc[0]['issue']} 到 "
+        f"{issues_to_test.iloc[-1]['issue']}，共 {len(issues_to_test)} 期；"
+        f"模型：{active_models}"
+    )
 
     with get_conn() as conn:
         for i, row in tqdm(
@@ -45,7 +52,7 @@ def run_backtest(start_idx: int = -200, force: bool = False) -> None:
             real_back = row.back
             past = history.iloc[: start_idx + i]
 
-            for name in MODELS:
+            for name in active_models:
                 existing = conn.execute(
                     "SELECT 1 FROM predictions WHERE issue = ? AND model = ? LIMIT 1",
                     (real_issue, name),
@@ -97,5 +104,12 @@ if __name__ == "__main__":
         help="起始索引；负数表示倒数第 N 期（默认 -200，即最近 200 期）",
     )
     parser.add_argument("--force", action="store_true", help="覆盖已有记录")
+    parser.add_argument(
+        "--only",
+        type=str,
+        default="",
+        help="仅跑指定模型（逗号分隔），例如 random,frequency,bayesian,markov,genetic",
+    )
     args = parser.parse_args()
-    run_backtest(args.start, args.force)
+    only = [x.strip() for x in args.only.split(",") if x.strip()] or None
+    run_backtest(args.start, args.force, only=only)

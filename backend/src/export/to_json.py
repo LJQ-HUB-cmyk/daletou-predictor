@@ -337,6 +337,8 @@ def run() -> None:
     export_frequency()
     export_predictions()
     export_stats()
+    from ..analytics.significance import export_significance
+    export_significance()
     print("全部 JSON 导出完成")
 
 

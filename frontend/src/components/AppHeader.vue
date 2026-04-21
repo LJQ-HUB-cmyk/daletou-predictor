@@ -31,6 +31,7 @@ const navs = [
   { to: "/predictions", label: "预测记录" },
   { to: "/analysis", label: "命中分析" },
   { to: "/compare", label: "模型对比" },
+  { to: "/methodology", label: "方法论" },
   { to: "/about", label: "关于" },
 ];
 </script>

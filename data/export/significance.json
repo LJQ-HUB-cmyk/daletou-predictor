@@ -1,0 +1,281 @@
+{
+  "methodology": {
+    "name": "Walk-forward backtest + Binomial test",
+    "description": "对每个模型：每期只用此期之前的历史训练/拟合，单期单模型出 1 注预测；开奖后记录命中个数。汇总 N 期后，对号码命中事件做二项检验 (H0: 模型 ≡ 随机抽号)，并给出 Wilson 95% 置信区间。",
+    "theoretical_front": 0.142857,
+    "theoretical_back": 0.166667,
+    "significance_level": 0.05
+  },
+  "models": [
+    {
+      "model": "bayesian",
+      "issues": 1,
+      "tickets": 4,
+      "front": {
+        "hits": 3,
+        "slots": 20,
+        "observed": 0.15,
+        "theoretical": 0.142857,
+        "ci95": [
+          0.052369,
+          0.360419
+        ],
+        "p_value": 1.0,
+        "significant": false
+      },
+      "back": {
+        "hits": 1,
+        "slots": 8,
+        "observed": 0.125,
+        "theoretical": 0.166667,
+        "ci95": [
+          0.022417,
+          0.470888
+        ],
+        "p_value": 1.0,
+        "significant": false
+      },
+      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+    },
+    {
+      "model": "ensemble",
+      "issues": 1,
+      "tickets": 4,
+      "front": {
+        "hits": 3,
+        "slots": 20,
+        "observed": 0.15,
+        "theoretical": 0.142857,
+        "ci95": [
+          0.052369,
+          0.360419
+        ],
+        "p_value": 1.0,
+        "significant": false
+      },
+      "back": {
+        "hits": 2,
+        "slots": 8,
+        "observed": 0.25,
+        "theoretical": 0.166667,
+        "ci95": [
+          0.071479,
+          0.590725
+        ],
+        "p_value": 0.627891,
+        "significant": false
+      },
+      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+    },
+    {
+      "model": "frequency",
+      "issues": 1,
+      "tickets": 4,
+      "front": {
+        "hits": 4,
+        "slots": 20,
+        "observed": 0.2,
+        "theoretical": 0.142857,
+        "ci95": [
+          0.080658,
+          0.416017
+        ],
+        "p_value": 0.516334,
+        "significant": false
+      },
+      "back": {
+        "hits": 0,
+        "slots": 8,
+        "observed": 0.0,
+        "theoretical": 0.166667,
+        "ci95": [
+          0.0,
+          0.324408
+        ],
+        "p_value": 0.367415,
+        "significant": false
+      },
+      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+    },
+    {
+      "model": "genetic",
+      "issues": 1,
+      "tickets": 4,
+      "front": {
+        "hits": 0,
+        "slots": 20,
+        "observed": 0.0,
+        "theoretical": 0.142857,
+        "ci95": [
+          0.0,
+          0.161125
+        ],
+        "p_value": 0.10094,
+        "significant": false
+      },
+      "back": {
+        "hits": 1,
+        "slots": 8,
+        "observed": 0.125,
+        "theoretical": 0.166667,
+        "ci95": [
+          0.022417,
+          0.470888
+        ],
+        "p_value": 1.0,
+        "significant": false
+      },
+      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+    },
+    {
+      "model": "lstm",
+      "issues": 1,
+      "tickets": 4,
+      "front": {
+        "hits": 7,
+        "slots": 20,
+        "observed": 0.35,
+        "theoretical": 0.142857,
+        "ci95": [
+          0.181192,
+          0.567146
+        ],
+        "p_value": 0.017053,
+        "significant": true
+      },
+      "back": {
+        "hits": 0,
+        "slots": 8,
+        "observed": 0.0,
+        "theoretical": 0.166667,
+        "ci95": [
+          0.0,
+          0.324408
+        ],
+        "p_value": 0.367415,
+        "significant": false
+      },
+      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+    },
+    {
+      "model": "markov",
+      "issues": 1,
+      "tickets": 4,
+      "front": {
+        "hits": 5,
+        "slots": 20,
+        "observed": 0.25,
+        "theoretical": 0.142857,
+        "ci95": [
+          0.111862,
+          0.468701
+        ],
+        "p_value": 0.192299,
+        "significant": false
+      },
+      "back": {
+        "hits": 1,
+        "slots": 8,
+        "observed": 0.125,
+        "theoretical": 0.166667,
+        "ci95": [
+          0.022417,
+          0.470888
+        ],
+        "p_value": 1.0,
+        "significant": false
+      },
+      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+    },
+    {
+      "model": "random",
+      "issues": 1,
+      "tickets": 4,
+      "front": {
+        "hits": 4,
+        "slots": 20,
+        "observed": 0.2,
+        "theoretical": 0.142857,
+        "ci95": [
+          0.080658,
+          0.416017
+        ],
+        "p_value": 0.516334,
+        "significant": false
+      },
+      "back": {
+        "hits": 1,
+        "slots": 8,
+        "observed": 0.125,
+        "theoretical": 0.166667,
+        "ci95": [
+          0.022417,
+          0.470888
+        ],
+        "p_value": 1.0,
+        "significant": false
+      },
+      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+    },
+    {
+      "model": "transformer",
+      "issues": 1,
+      "tickets": 4,
+      "front": {
+        "hits": 4,
+        "slots": 20,
+        "observed": 0.2,
+        "theoretical": 0.142857,
+        "ci95": [
+          0.080658,
+          0.416017
+        ],
+        "p_value": 0.516334,
+        "significant": false
+      },
+      "back": {
+        "hits": 1,
+        "slots": 8,
+        "observed": 0.125,
+        "theoretical": 0.166667,
+        "ci95": [
+          0.022417,
+          0.470888
+        ],
+        "p_value": 1.0,
+        "significant": false
+      },
+      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+    },
+    {
+      "model": "xgboost",
+      "issues": 1,
+      "tickets": 4,
+      "front": {
+        "hits": 1,
+        "slots": 20,
+        "observed": 0.05,
+        "theoretical": 0.142857,
+        "ci95": [
+          0.008881,
+          0.236131
+        ],
+        "p_value": 0.345036,
+        "significant": false
+      },
+      "back": {
+        "hits": 1,
+        "slots": 8,
+        "observed": 0.125,
+        "theoretical": 0.166667,
+        "ci95": [
+          0.022417,
+          0.470888
+        ],
+        "p_value": 1.0,
+        "significant": false
+      },
+      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+    }
+  ]
+}

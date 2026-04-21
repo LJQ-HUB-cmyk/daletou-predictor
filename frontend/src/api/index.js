@@ -22,4 +22,5 @@ export const api = {
   frequency: () => fetchJson("frequency.json", null),
   predictions: () => fetchJson("predictions.json", []),
   stats: () => fetchJson("stats.json", { summary: [], trend: {} }),
+  significance: () => fetchJson("significance.json", { methodology: null, models: [] }),
 };
