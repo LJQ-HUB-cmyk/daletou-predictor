@@ -1,6 +1,12 @@
 name: Walk-Forward Backtest
 
 # 手动触发：在 N 期历史上做严格 walk-forward，用于填充 methodology 页的统计判决数据
+# 单 job 受 GitHub Actions 6h 硬上限限制，因此本 workflow 采用「时间预算 + 自动接力」策略：
+#   1) backtest 跑满 TIME_BUDGET_SECONDS 后主动停机（不是 timeout kill），
+#      之前算的预测已每期 commit 到 DB；
+#   2) Export/Render/Commit 步骤始终执行，把 DB + JSON + 图表推回仓库；
+#   3) 若 .backtest_state.json 显示未完成，最后一步自动 `gh workflow run` 再触发本 workflow，
+#      下一轮 checkout 到最新 DB，靠"已存在就跳过"的逻辑从断点继续。
 on:
   workflow_dispatch:
     inputs:
@@ -9,21 +15,34 @@ on:
         required: true
         default: "-10000"
       force:
-        description: "是否覆盖已有预测（true/false）"
+        description: "是否覆盖已有预测（true/false，开启续跑请保持 false）"
         required: true
         default: "false"
       models:
         description: "只跑哪些模型（逗号分隔；空 = 全部 9 模型。全库回测很重，可填 random,frequency 等做快速试跑）"
         required: false
         default: ""
+      auto_continue:
+        description: "未跑完时自动触发下一轮续跑（true/false）"
+        required: false
+        default: "true"
+      time_budget_seconds:
+        description: "单轮 backtest 时间预算（秒），到点主动停机。默认 17400=4h50m，给后面 export/commit 留余量"
+        required: false
+        default: "17400"
 
 permissions:
   contents: write
+  actions: write # 需要此权限才能用 GITHUB_TOKEN 调 `gh workflow run` 自动接力
+
+concurrency:
+  group: backtest
+  cancel-in-progress: false
 
 jobs:
   backtest:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 355 # GitHub 免费 runner 单 job 硬上限是 360min，留 5min 安全边际
 
     steps:
       - uses: actions/checkout@v4
@@ -37,26 +56,81 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
-      - name: Run walk-forward backtest
+      - name: Run walk-forward backtest (with time budget)
         env:
           ONLY_MODELS: ${{ inputs.models }}
+          TIME_BUDGET: ${{ inputs.time_budget_seconds }}
         run: |
-          ARGS="--start ${{ inputs.start }}"
+          ARGS="--start ${{ inputs.start }} --time-budget-seconds $TIME_BUDGET"
           if [ "${{ inputs.force }}" = "true" ]; then ARGS="$ARGS --force"; fi
           if [ -n "$ONLY_MODELS" ]; then ARGS="$ARGS --only $ONLY_MODELS"; fi
+          echo "[cmd] python -m backend.src.tasks.backtest $ARGS"
           python -m backend.src.tasks.backtest $ARGS
 
+      - name: Show progress state
+        if: always()
+        run: |
+          if [ -f data/.backtest_state.json ]; then
+            echo "===== backtest state ====="
+            cat data/.backtest_state.json
+            echo
+            echo "=========================="
+          else
+            echo "WARNING: data/.backtest_state.json 不存在，可能在生成前就出错了"
+          fi
+
       - name: Export JSON (含 significance.json)
+        if: always()
         run: python -m backend.src.export.to_json
 
       - name: Render charts
+        if: always()
         run: python -m backend.src.export.chart
 
-      - name: Commit backtest results
+      - name: Commit progress (db + json + charts + state)
+        if: always()
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore(backtest): walk-forward ${{ inputs.start }} (force=${{ inputs.force }})"
+          commit_message: "chore(backtest): walk-forward ${{ inputs.start }} progress"
           file_pattern: |
             data/daletou.db
             data/export/*.json
             data/img/*.png
+            data/.backtest_state.json
+            data/lstm_state.pt
+            data/lstm_meta.json
+            data/transformer_state.pt
+            data/transformer_meta.json
+            data/xgboost_probs.npz
+
+      - name: Auto-dispatch next run if not finished
+        if: always() && inputs.auto_continue == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          START: ${{ inputs.start }}
+          FORCE: ${{ inputs.force }}
+          MODELS: ${{ inputs.models }}
+          TIME_BUDGET: ${{ inputs.time_budget_seconds }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ ! -f data/.backtest_state.json ]; then
+            echo "[auto] state 文件不存在，跳过自动续跑"
+            exit 0
+          fi
+          DONE=$(python -c "import json,sys; sys.stdout.write(str(json.load(open('data/.backtest_state.json'))['done']).lower())")
+          echo "[auto] done=$DONE"
+          if [ "$DONE" = "true" ]; then
+            echo "[auto] backtest 已完成，无需续跑"
+            exit 0
+          fi
+          echo "[auto] backtest 未完成，5s 后 dispatch 下一轮..."
+          sleep 5
+          # 续跑必须保持 force=false，否则会把上一轮刚写入的记录删掉重算
+          gh workflow run backtest.yml \
+            --ref "$REF_NAME" \
+            -f start="$START" \
+            -f force=false \
+            -f models="$MODELS" \
+            -f auto_continue=true \
+            -f time_budget_seconds="$TIME_BUDGET"
+          echo "[auto] 下一轮已提交到 Actions 队列（concurrency group=backtest 会等本轮完全结束后再跑）"
