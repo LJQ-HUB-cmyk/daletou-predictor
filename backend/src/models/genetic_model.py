@@ -21,6 +21,7 @@ from ..config import (
     FRONT_COUNT,
     FRONT_MAX,
     FRONT_MIN,
+    MAX_HISTORY_WINDOW,
     PRIZE_TABLE,
     TICKET_PRICE,
 )
@@ -108,7 +109,10 @@ class GeneticModel(BaseModel):
 
     name = "genetic"
 
-    def __init__(self, recent_window: int = 400) -> None:
+    def __init__(self, recent_window: int = MAX_HISTORY_WINDOW) -> None:
+        """
+        @param recent_window 适应度评估用的历史窗口（默认全量 MAX_HISTORY_WINDOW）
+        """
         self.recent_window = recent_window
         self._cache: List[Ticket] | None = None
         self._cache_key: int = -1
@@ -118,7 +122,9 @@ class GeneticModel(BaseModel):
         跑一次完整的 GA，返回精英种群
         """
         rng = random.Random(f"ga-{len(history)}")
-        window = history.tail(self.recent_window)
+        n = len(history)
+        w = min(max(1, n), self.recent_window)
+        window = history.tail(w)
         population = [_random_individual(rng) for _ in range(POP_SIZE)]
 
         for _ in range(GENERATIONS):

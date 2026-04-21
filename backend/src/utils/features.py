@@ -144,13 +144,13 @@ def missing_stats(history: pd.DataFrame, is_front: bool = True) -> Dict[int, int
 
 
 def history_feature_bounds(
-    history: pd.DataFrame, recent: int = 300, quantile: tuple = (0.05, 0.95)
+    history: pd.DataFrame, recent: int = 100_000, quantile: tuple = (0.05, 0.95)
 ) -> Dict[str, tuple]:
     """
     从历史开奖中学习各指标的合理区间，供筛选器使用
 
     @param history 历史数据
-    @param recent 仅用最近 N 期
+    @param recent 仅用最近 N 期（默认极大，即全量可用历史）
     @param quantile 分位区间（下限, 上限）
     @returns {指标名: (lo, hi)}
     """

@@ -7,7 +7,15 @@ from collections import Counter
 
 import pandas as pd
 
-from ..config import BACK_COUNT, BACK_MAX, BACK_MIN, FRONT_COUNT, FRONT_MAX, FRONT_MIN
+from ..config import (
+    BACK_COUNT,
+    BACK_MAX,
+    BACK_MIN,
+    FRONT_COUNT,
+    FRONT_MAX,
+    FRONT_MIN,
+    MAX_HISTORY_WINDOW,
+)
 from .base import BaseModel, Ticket
 
 
@@ -19,9 +27,9 @@ class FrequencyModel(BaseModel):
 
     name = "frequency"
 
-    def __init__(self, recent_window: int = 300, decay: float = 0.995) -> None:
+    def __init__(self, recent_window: int = MAX_HISTORY_WINDOW, decay: float = 0.995) -> None:
         """
-        @param recent_window 近期窗口大小（只看最近 N 期，太久之前不考虑）
+        @param recent_window 统计窗口上限（默认 MAX_HISTORY_WINDOW，即全量历史；仍可用更小值做消融）
         @param decay 时间衰减因子，越近的期数权重越高
         """
         self.recent_window = recent_window
@@ -33,7 +41,9 @@ class FrequencyModel(BaseModel):
 
         @returns (front_weights, back_weights)
         """
-        recent = history.tail(self.recent_window)
+        n = len(history)
+        w = min(max(1, n), self.recent_window)
+        recent = history.tail(w)
         front_counter: Counter[int] = Counter()
         back_counter: Counter[int] = Counter()
         total = len(recent)

@@ -5,15 +5,15 @@ on:
   workflow_dispatch:
     inputs:
       start:
-        description: "起始索引（负数 = 倒数 N 期，例如 -500 表示最近 500 期回测）"
+        description: "起始索引（负数 = 倒数 N 期；-10000 表示从第 50 期起几乎全库 walk-forward）"
         required: true
-        default: "-300"
+        default: "-10000"
       force:
         description: "是否覆盖已有预测（true/false）"
         required: true
         default: "false"
       models:
-        description: "只跑哪些模型（逗号分隔；空 = 仅轻量模型 random/frequency/bayesian/markov/genetic）"
+        description: "只跑哪些模型（逗号分隔；空 = 全部 9 模型。全库回测很重，可填 random,frequency 等做快速试跑）"
         required: false
         default: ""
 
@@ -23,7 +23,7 @@ permissions:
 jobs:
   backtest:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 360
 
     steps:
       - uses: actions/checkout@v4

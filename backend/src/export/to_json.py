@@ -14,6 +14,8 @@ from ..config import (
     EXPORT_DIR,
     FRONT_MAX,
     FRONT_MIN,
+    LSTM_INCREMENTAL_REPLAY_MAX,
+    MAX_HISTORY_WINDOW,
     MODEL_LABELS,
     MODELS,
     TICKET_PRICE,
@@ -322,6 +324,8 @@ def export_meta() -> None:
         "total_results": results,
         "tickets_per_draw": TICKETS_PER_DRAW,
         "ticket_price": TICKET_PRICE,
+        "max_history_window": MAX_HISTORY_WINDOW,
+        "lstm_incremental_replay_max": LSTM_INCREMENTAL_REPLAY_MAX,
         "models": [{"key": k, "label": v} for k, v in MODEL_LABELS.items()],
     }
     _write_json("meta.json", meta)

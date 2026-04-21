@@ -21,6 +21,12 @@ BACK_COUNT = 2
 TICKETS_PER_DRAW = 1
 TICKET_PRICE = 2
 
+# 用于频率/遗传/组合筛选等「看历史」逻辑：>= 当前库中期数即等价于全量反哺
+MAX_HISTORY_WINDOW = 100_000
+
+# LSTM 增量微调时，除新期外额外回放的最多期数（越大越贴近「全历史记忆」）
+LSTM_INCREMENTAL_REPLAY_MAX = 2500
+
 PRIZE_TABLE = {
     (5, 2): ("一等奖", 10_000_000),
     (5, 1): ("二等奖", 300_000),

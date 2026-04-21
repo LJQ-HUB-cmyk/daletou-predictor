@@ -8,6 +8,24 @@
       </p>
     </div>
 
+    <!-- 0. 全量历史反哺 -->
+    <section class="card">
+      <div class="card-title">0. 全量历史反哺（当前实现）</div>
+      <p>
+        爬虫入库的 <b>全部开奖期</b>（约 2800+ 期）都会参与：
+      </p>
+      <ul class="bullets">
+        <li><b>频率 / 遗传</b>：统计与适应度窗口默认拉满到库中全部期（上限由配置 <code>max_history_window</code> 保护）</li>
+        <li><b>贝叶斯 / 马尔可夫</b>：本就一直遍历整表构建后验与转移矩阵</li>
+        <li><b>XGBoost</b>：训练样本从第 WINDOW 期起覆盖到最后一期</li>
+        <li><b>LSTM / Transformer</b>：首次全量训练吃满历史；增量微调时回放区扩大到 <code>lstm_incremental_replay_max</code> 期</li>
+        <li><b>组合筛选器</b>：分位区间在「可用全部历史」上学出边界（仍用 5%–95% 分位避免极端噪声）</li>
+      </ul>
+      <p class="muted">
+        首页元数据里的 <code>max_history_window</code>、<code>lstm_incremental_replay_max</code> 与当前库期数可对账。
+      </p>
+    </section>
+
     <!-- 1. Walk-forward 说明 -->
     <section class="card">
       <div class="card-title">1. 回测协议：Walk-Forward（滚动单步）</div>
@@ -456,6 +474,20 @@ const backChartOption = computed(() =>
 .steps li::marker {
   color: #3b82f6;
   font-weight: bold;
+}
+
+.bullets {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  line-height: 1.85;
+  color: #d4d4d8;
+}
+.bullets code {
+  font-size: 12px;
+  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.12);
+  padding: 1px 6px;
+  border-radius: 4px;
 }
 
 .chart-ci {

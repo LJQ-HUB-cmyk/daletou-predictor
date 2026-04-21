@@ -10,6 +10,7 @@ from typing import Dict, Optional, Tuple
 
 import pandas as pd
 
+from ..config import MAX_HISTORY_WINDOW
 from ..utils.features import extract, history_feature_bounds
 
 
@@ -27,9 +28,13 @@ class CombinationFilter:
         "big_count_front", "consec_count_front", "ac_value",
     )
 
-    def __init__(self, history: pd.DataFrame, recent: int = 300) -> None:
+    def __init__(self, history: pd.DataFrame, recent: int = MAX_HISTORY_WINDOW) -> None:
+        """
+        @param recent 用于学指标分位区间的期数（默认全量窗口上限）
+        """
+        r = min(len(history), max(1, recent))
         self.bounds: Dict[str, Tuple[float, float]] = history_feature_bounds(
-            history, recent=recent, quantile=(0.05, 0.95)
+            history, recent=r, quantile=(0.05, 0.95)
         )
 
     def evaluate(self, front, back) -> Tuple[bool, int, list]:

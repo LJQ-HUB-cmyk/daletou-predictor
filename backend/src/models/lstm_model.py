@@ -28,6 +28,7 @@ from ..config import (
     FRONT_COUNT,
     FRONT_MAX,
     FRONT_MIN,
+    LSTM_INCREMENTAL_REPLAY_MAX,
 )
 from .base import BaseModel, Ticket
 
@@ -224,7 +225,7 @@ class LSTMModel(BaseModel):
         start_idx = max(0, first_new - WINDOW)
         new_slice = history.iloc[start_idx:]
 
-        replay_size = min(400, len(history) - len(new_slice))
+        replay_size = min(LSTM_INCREMENTAL_REPLAY_MAX, len(history) - len(new_slice))
         replay = history.iloc[-(len(new_slice) + replay_size) : -len(new_slice)] if replay_size > 0 else history.iloc[:0]
         combined = pd.concat([replay, new_slice], ignore_index=True)
 

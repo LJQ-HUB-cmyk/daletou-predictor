@@ -19,12 +19,14 @@ from ..config import (
     FRONT_COUNT,
     FRONT_MAX,
     FRONT_MIN,
+    MODELS,
+    TICKETS_PER_DRAW,
 )
 from ..db import get_conn
 from ..utils.numbers import decode
 from .base import BaseModel, Ticket
 
-OTHER_MODELS = ["random", "frequency", "markov", "lstm", "genetic"]
+OTHER_MODELS = [m for m in MODELS if m != "ensemble"]
 
 
 def _model_weights() -> Dict[str, float]:
@@ -87,7 +89,7 @@ class EnsembleModel(BaseModel):
 
     def _build_ensemble_tickets(self, history: pd.DataFrame) -> List[Ticket]:
         """
-        根据其他模型对同一期的预测进行加权投票，构造 4 张集成票
+        根据其他模型对同一期的预测进行加权投票，构造 TICKETS_PER_DRAW 张集成票
         """
         import random
 
@@ -141,7 +143,7 @@ class EnsembleModel(BaseModel):
         tickets: List[Ticket] = []
         seen = set()
         attempt = 0
-        while len(tickets) < 4 and attempt < 50:
+        while len(tickets) < TICKETS_PER_DRAW and attempt < 50:
             front = _softsample(front_votes, FRONT_COUNT, seed=attempt * 7 + 1)
             back = _softsample(back_votes, BACK_COUNT, seed=attempt * 7 + 2)
             key = (tuple(sorted(front)), tuple(sorted(back)))
