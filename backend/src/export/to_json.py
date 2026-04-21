@@ -11,6 +11,7 @@ from typing import Any, Dict
 from ..config import (
     BACK_MAX,
     BACK_MIN,
+    BACKTEST_MIN_START_INDEX,
     EXPORT_DIR,
     FRONT_MAX,
     FRONT_MIN,
@@ -326,6 +327,7 @@ def export_meta() -> None:
         "ticket_price": TICKET_PRICE,
         "max_history_window": MAX_HISTORY_WINDOW,
         "lstm_incremental_replay_max": LSTM_INCREMENTAL_REPLAY_MAX,
+        "backtest_min_start_index": BACKTEST_MIN_START_INDEX,
         "models": [{"key": k, "label": v} for k, v in MODEL_LABELS.items()],
     }
     _write_json("meta.json", meta)

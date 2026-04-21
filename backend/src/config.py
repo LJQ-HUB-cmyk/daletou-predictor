@@ -27,6 +27,13 @@ MAX_HISTORY_WINDOW = 100_000
 # LSTM 增量微调时，除新期外额外回放的最多期数（越大越贴近「全历史记忆」）
 LSTM_INCREMENTAL_REPLAY_MAX = 2500
 
+# 序列模型 / XGBoost 使用的过去期数（与各模型 WINDOW 常量保持一致）
+SEQUENCE_FEATURE_WINDOW = 10
+
+# Walk-forward 回测：历史表中「第一期被评估目标」的最小行索引（0-based）。
+# 评估第 i 行时 past = iloc[:i]，故 i 至少为 SEQUENCE_FEATURE_WINDOW+1，前若干行仅作上下文。
+BACKTEST_MIN_START_INDEX = SEQUENCE_FEATURE_WINDOW + 1
+
 PRIZE_TABLE = {
     (5, 2): ("一等奖", 10_000_000),
     (5, 1): ("二等奖", 300_000),

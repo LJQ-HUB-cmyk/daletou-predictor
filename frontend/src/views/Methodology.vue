@@ -39,6 +39,12 @@
         <li>实际开奖后记录命中：前区中几个、后区中几个</li>
         <li>i ← i+1，回到第 2 步</li>
       </ol>
+      <p class="muted k-note">
+        <b>最早从哪一期开始评估？</b> 不是「随便空 50 期」，而是技术下限：LSTM / Transformer / XGBoost
+        需要至少过去 <b>10</b> 期构造序列特征，再加 1 期才能形成一条训练样本，因此全库回测里
+        <code>k = backtest_min_start_index</code>（当前为 <b>11</b>，即表中第 <b>12</b> 行对应的期号起才作为「被预测的当期」）。
+        更前面的期号仍然全部参与训练，只是不作为第一条 walk-forward 的评估目标。
+      </p>
       <div class="walkforward">
         <div class="wf-row" v-for="i in 5" :key="i">
           <div class="wf-train" :style="{ width: 30 + i * 8 + '%' }">训练窗口</div>
@@ -474,6 +480,19 @@ const backChartOption = computed(() =>
 .steps li::marker {
   color: #3b82f6;
   font-weight: bold;
+}
+
+.k-note {
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.75;
+}
+.k-note code {
+  font-size: 12px;
+  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.12);
+  padding: 1px 6px;
+  border-radius: 4px;
 }
 
 .bullets {

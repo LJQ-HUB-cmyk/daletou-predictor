@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       start:
-        description: "起始索引（负数 = 倒数 N 期；-10000 表示从第 50 期起几乎全库 walk-forward）"
+        description: "起始索引（0-based 行号；负数=倒数 N 期。-10000≈从全库最早可评估点起，即 backtest_min_start_index）"
         required: true
         default: "-10000"
       force:

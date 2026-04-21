@@ -8,7 +8,12 @@ import argparse
 
 from tqdm import tqdm
 
-from ..config import MODELS, PRIZE_TABLE, TICKETS_PER_DRAW
+from ..config import (
+    BACKTEST_MIN_START_INDEX,
+    MODELS,
+    PRIZE_TABLE,
+    TICKETS_PER_DRAW,
+)
 from ..db import get_conn, init_db
 from ..models import get_model
 from ..utils.numbers import count_hits, encode
@@ -31,8 +36,8 @@ def run_backtest(start_idx: int = -200, force: bool = False,
         raise RuntimeError("历史数据太少，无法回测")
 
     if start_idx < 0:
-        start_idx = max(50, n_total + start_idx)
-    start_idx = max(start_idx, 50)
+        start_idx = max(BACKTEST_MIN_START_INDEX, n_total + start_idx)
+    start_idx = max(start_idx, BACKTEST_MIN_START_INDEX)
 
     issues_to_test = history.iloc[start_idx:]
     active_models = [m for m in MODELS if (not only) or m in only]
@@ -69,7 +74,8 @@ def run_backtest(start_idx: int = -200, force: bool = False,
                         (real_issue, name),
                     )
 
-                model = get_model(name)
+                kwargs = {"target_issue": real_issue} if name == "ensemble" else {}
+                model = get_model(name, **kwargs)
                 tickets = model.predict(past, n=TICKETS_PER_DRAW)
                 for idx, t in enumerate(tickets):
                     conn.execute(
@@ -101,7 +107,10 @@ if __name__ == "__main__":
         "--start",
         type=int,
         default=-200,
-        help="起始索引；负数表示倒数第 N 期（默认 -200，即最近 200 期）",
+        help=(
+            "起始索引（0-based 行号）；负数表示倒数第 N 期。"
+            f" 小于 {BACKTEST_MIN_START_INDEX} 时会被抬到该值（与序列模型 WINDOW+1 对齐，≈全库最早可评估点）"
+        ),
     )
     parser.add_argument("--force", action="store_true", help="覆盖已有记录")
     parser.add_argument(
