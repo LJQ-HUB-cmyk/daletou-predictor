@@ -1,0 +1,55 @@
+name: Heartbeat (backtest 心跳复活)
+
+# 背景：GitHub Actions 的 schedule 对这个 repo 极不可靠（predict 0/月、evaluate 1/月），
+# backtest 自续心跳一旦断开（全部失败/全部被取消），整条事件链静默停摆。
+#
+# 这个 workflow 是第二层保险：
+#   - schedule 挂多个时间点"撞大运"（有总比没有好，命中一次就够救）
+#   - workflow_dispatch 可随时手动救命："gh workflow run heartbeat.yml"
+#   - 自己不依赖任何业务数据，只做一件事：发现 backtest 断链 → 立即 dispatch backtest
+#
+# 成本：每次 ~10 秒，不会抢 runner 配额。
+
+on:
+  schedule:
+    # 每 3 小时一次（UTC），多时间点"撞大运"
+    - cron: "7 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check backtest liveness; kick if dead
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          # 查最近 3 小时内 backtest 是否有任何 run（任何状态都算活着，包括 in_progress）
+          CUTOFF=$(date -u -d "-3 hours" '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null \
+                || date -u -v-3H '+%Y-%m-%dT%H:%M:%SZ')
+          echo "[hb] cutoff=$CUTOFF"
+
+          COUNT=$(gh api "/repos/$REPO/actions/workflows/backtest.yml/runs?per_page=10&created=>$CUTOFF" \
+                   --jq '.total_count // 0')
+          echo "[hb] 最近 3h 内 backtest run 数: $COUNT"
+
+          if [ "$COUNT" -ge 1 ]; then
+            echo "[hb] ✓ 心跳正常，无需干预"
+            exit 0
+          fi
+
+          echo "[hb] ⚠️ backtest 心跳断链！立即 dispatch 复活"
+          gh workflow run backtest.yml \
+            --ref main \
+            -f start="-200" \
+            -f force=false \
+            -f models="all" \
+            -f auto_continue=true \
+            -f time_budget_seconds=3600 \
+            && echo "[hb] ✓ backtest.yml 已 dispatch，心跳恢复" \
+            || echo "[hb] ✗ dispatch 失败（权限问题？），请人工检查"

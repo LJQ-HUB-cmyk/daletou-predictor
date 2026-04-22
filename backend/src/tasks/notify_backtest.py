@@ -116,6 +116,15 @@ def main() -> int:
         ]
 
     notify(title, "\n".join(lines))
+
+    # 借每轮 backtest 结束的心跳点，顺便做一次数据新鲜度检查
+    # 发现官网抓取断流（>4 天没新数据）时自动发独立告警通知
+    try:
+        from .check_freshness import check_and_alert
+        check_and_alert()
+    except Exception as e:
+        print(f"[notify_backtest] 新鲜度检查异常（忽略）: {e}")
+
     return 0
 
 
