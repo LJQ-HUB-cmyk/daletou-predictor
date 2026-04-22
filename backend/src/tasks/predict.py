@@ -27,14 +27,14 @@ def _existing_models_for_issue(issue: str) -> set[str]:
 
 
 def run_predict(target_issue: str | None = None, force: bool = False,
-                notify_on_done: bool = True) -> str:
+                notify_on_done: bool = True) -> tuple[str, bool]:
     """
     生成下一期预测
 
     @param target_issue 要预测的期号，默认自动推断为最新一期 +1
     @param force 是否覆盖已有预测
-    @param notify_on_done 完成后是否立即推送微信
-    @returns 本次预测的期号
+    @param notify_on_done 完成后且本次确有新生成时是否推送微信（全跳过不推送，避免重复 cron 触发反复通知）
+    @returns (期号, 本次是否有新模型被生成) ——any_new=False 表示命中幂等，workflow 应视为"本期已完成"
     """
     init_db()
     history = load_history()
@@ -47,6 +47,7 @@ def run_predict(target_issue: str | None = None, force: bool = False,
 
     print(f"为期号 {issue} 生成预测（已存在: {sorted(existing) or '无'}）")
 
+    any_new = False
     with get_conn() as conn:
         for name in MODELS:
             if name in existing and not force:
@@ -74,10 +75,13 @@ def run_predict(target_issue: str | None = None, force: bool = False,
             conn.commit()
             for idx, t in enumerate(tickets):
                 print(f"    注{idx + 1}: 前 {encode(t.front)}  后 {encode(t.back)}")
+            any_new = True
 
-    if notify_on_done:
+    if not any_new:
+        print(f"期号 {issue} 全部模型预测已存在（幂等命中），跳过通知")
+    elif notify_on_done:
         _send_predict_notification(issue)
-    return issue
+    return issue, any_new
 
 
 def notify_predict(issue: str) -> None:
@@ -180,9 +184,11 @@ if __name__ == "__main__":
             raise SystemExit("--notify-only 需要同时指定 --issue")
         notify_predict(args.issue)
     else:
-        issue = run_predict(args.issue, args.force,
-                            notify_on_done=not args.no_notify)
-        if args.print_issue:
+        issue, any_new = run_predict(args.issue, args.force,
+                                     notify_on_done=not args.no_notify)
+        if args.print_issue and any_new:
+            # any_new=False 时刻意不写 GITHUB_OUTPUT.issue，让后续 notify step 的
+            # `if: steps.pred.outputs.issue != ''` 自动跳过——这就是防重复通知的关键
             out = os.environ.get("GITHUB_OUTPUT")
             if out:
                 with open(out, "a") as f:
