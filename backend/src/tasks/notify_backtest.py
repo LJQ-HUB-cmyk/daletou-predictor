@@ -90,8 +90,25 @@ def main() -> int:
     total = int(state.get("total", 0))
     last_issue = state.get("last_issue")
     elapsed = float(state.get("elapsed_seconds", 0))
+    skipped_draws = int(state.get("skipped_draws_this_run", 0))
     start_idx = state.get("start_idx")
     pct = (processed / total * 100) if total else 0.0
+
+    # 防刷屏：backtest 作为“心跳”时，即使 done=true 也会被反复 dispatch。
+    # 当本轮基本没有做任何计算（全部期号都命中幂等跳过）时，elapsed 会很短且 skipped_draws≈total。
+    # 这种“空转完成”不应推送通知，否则会每小时一条“回测完成”轰炸用户。
+    if done and total and skipped_draws >= total and elapsed <= 60:
+        print(
+            "[notify_backtest] done=true 但本轮全量幂等跳过（空转心跳），"
+            "为防刷屏跳过通知"
+        )
+        # 仍然做新鲜度检查（如果数据断流要报警）
+        try:
+            from .check_freshness import check_and_alert
+            check_and_alert()
+        except Exception as e:
+            print(f"[notify_backtest] 新鲜度检查异常（忽略）: {e}")
+        return 0
 
     if done:
         title = "✅ 回测完成"
@@ -102,6 +119,7 @@ def main() -> int:
             f"- 起始 idx：{start_idx}",
             f"- 最末期：{last_issue}",
             f"- 本轮耗时：{_format_hms(elapsed)}",
+            f"- 本轮幂等跳过：{skipped_draws}/{total}",
             f"- run：{run_url}",
         ]
     else:
@@ -112,6 +130,7 @@ def main() -> int:
             f"- 已处理：**{processed}/{total}** ({pct:.1f}%)",
             f"- 最末期：{last_issue}",
             f"- 本轮耗时：{_format_hms(elapsed)}",
+            f"- 本轮幂等跳过：{skipped_draws}/{total}",
             f"- run：{run_url}",
         ]
 
