@@ -160,7 +160,10 @@ with open(os.path.expanduser("~/.git-credentials")) as f:
 **事件链的必要条件**：
 
 - `backtest.yml` 必须一直在心跳（哪怕 done=true 也接力）。如果心跳断了，evaluate 就不会被触发，事件链断开。
-- 心跳断了怎么恢复？任何时候手动 `gh workflow run backtest.yml` 一次，心跳就恢复了。
+- 心跳断了怎么恢复？两层保险：
+  - **自动**：`heartbeat.yml` 每 3h schedule（虽然 schedule 不稳但撞得上就救一次）+ 检测到 backtest 最近 3h 无 run → 自动 dispatch
+  - **手动**：`gh workflow run heartbeat.yml` 或 `gh workflow run backtest.yml`
+- 数据抓取断流？`check_freshness.py` 在每轮 backtest 心跳结束时自动检查 draws 最新日期，距今 > 4 天发告警微信。
 
 **调试事件链**：
 
