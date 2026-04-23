@@ -9,273 +9,273 @@
   "models": [
     {
       "model": "bayesian",
-      "issues": 300,
-      "tickets": 303,
+      "issues": 301,
+      "tickets": 304,
       "front": {
-        "hits": 225,
-        "slots": 1515,
-        "observed": 0.148515,
+        "hits": 226,
+        "slots": 1520,
+        "observed": 0.148684,
         "theoretical": 0.142857,
         "ci95": [
-          0.131498,
-          0.16731
+          0.131685,
+          0.167455
         ],
-        "p_value": 0.529142,
+        "p_value": 0.516194,
         "significant": false
       },
       "back": {
         "hits": 111,
-        "slots": 606,
-        "observed": 0.183168,
+        "slots": 608,
+        "observed": 0.182566,
         "theoretical": 0.166667,
         "ci95": [
-          0.1544,
-          0.215928
+          0.153884,
+          0.215234
         ],
-        "p_value": 0.275697,
+        "p_value": 0.301013,
         "significant": false
       },
-      "verdict": "与随机基线在 α=0.05 下不可区分 (前区 p=0.529, 后区 p=0.276)"
+      "verdict": "与随机基线在 α=0.05 下不可区分 (前区 p=0.516, 后区 p=0.301)"
     },
     {
       "model": "ensemble",
-      "issues": 1,
-      "tickets": 4,
+      "issues": 2,
+      "tickets": 5,
       "front": {
-        "hits": 3,
-        "slots": 20,
-        "observed": 0.15,
+        "hits": 4,
+        "slots": 25,
+        "observed": 0.16,
         "theoretical": 0.142857,
         "ci95": [
-          0.052369,
-          0.360419
+          0.064035,
+          0.346536
         ],
-        "p_value": 1.0,
+        "p_value": 0.774262,
         "significant": false
       },
       "back": {
         "hits": 2,
-        "slots": 8,
-        "observed": 0.25,
+        "slots": 10,
+        "observed": 0.2,
         "theoretical": 0.166667,
         "ci95": [
-          0.071479,
-          0.590725
+          0.056682,
+          0.509838
         ],
-        "p_value": 0.627891,
+        "p_value": 0.676989,
         "significant": false
       },
-      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+      "verdict": "样本不足（仅 2 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
     },
     {
       "model": "frequency",
-      "issues": 300,
-      "tickets": 303,
+      "issues": 301,
+      "tickets": 304,
       "front": {
-        "hits": 208,
-        "slots": 1515,
-        "observed": 0.137294,
+        "hits": 210,
+        "slots": 1520,
+        "observed": 0.138158,
         "theoretical": 0.142857,
         "ci95": [
-          0.120879,
-          0.155543
+          0.121721,
+          0.156419
         ],
-        "p_value": 0.53603,
+        "p_value": 0.600579,
         "significant": false
       },
       "back": {
         "hits": 98,
-        "slots": 606,
-        "observed": 0.161716,
+        "slots": 608,
+        "observed": 0.161184,
         "theoretical": 0.166667,
         "ci95": [
-          0.134547,
-          0.193147
+          0.134098,
+          0.192525
         ],
-        "p_value": 0.785301,
+        "p_value": 0.744342,
         "significant": false
       },
-      "verdict": "与随机基线在 α=0.05 下不可区分 (前区 p=0.536, 后区 p=0.785)"
+      "verdict": "与随机基线在 α=0.05 下不可区分 (前区 p=0.601, 后区 p=0.744)"
     },
     {
       "model": "genetic",
-      "issues": 300,
-      "tickets": 303,
+      "issues": 301,
+      "tickets": 304,
       "front": {
-        "hits": 209,
-        "slots": 1515,
-        "observed": 0.137954,
+        "hits": 211,
+        "slots": 1520,
+        "observed": 0.138816,
         "theoretical": 0.142857,
         "ci95": [
-          0.121502,
-          0.156237
+          0.122343,
+          0.15711
         ],
-        "p_value": 0.585473,
+        "p_value": 0.652517,
         "significant": false
       },
       "back": {
         "hits": 86,
-        "slots": 606,
-        "observed": 0.141914,
+        "slots": 608,
+        "observed": 0.141447,
         "theoretical": 0.166667,
         "ci95": [
-          0.116382,
-          0.171958
+          0.115994,
+          0.171403
         ],
-        "p_value": 0.113695,
+        "p_value": 0.1024,
         "significant": false
       },
-      "verdict": "与随机基线在 α=0.05 下不可区分 (前区 p=0.585, 后区 p=0.114)"
+      "verdict": "与随机基线在 α=0.05 下不可区分 (前区 p=0.653, 后区 p=0.102)"
     },
     {
       "model": "lstm",
-      "issues": 1,
-      "tickets": 4,
+      "issues": 2,
+      "tickets": 5,
       "front": {
-        "hits": 7,
-        "slots": 20,
-        "observed": 0.35,
+        "hits": 8,
+        "slots": 25,
+        "observed": 0.32,
         "theoretical": 0.142857,
         "ci95": [
-          0.181192,
-          0.567146
+          0.172052,
+          0.515897
         ],
-        "p_value": 0.017053,
+        "p_value": 0.019416,
         "significant": true
       },
       "back": {
-        "hits": 0,
-        "slots": 8,
-        "observed": 0.0,
+        "hits": 1,
+        "slots": 10,
+        "observed": 0.1,
         "theoretical": 0.166667,
         "ci95": [
-          0.0,
-          0.324408
+          0.017876,
+          0.40415
         ],
-        "p_value": 0.367415,
+        "p_value": 1.0,
         "significant": false
       },
-      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+      "verdict": "样本不足（仅 2 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
     },
     {
       "model": "markov",
-      "issues": 300,
-      "tickets": 303,
+      "issues": 301,
+      "tickets": 304,
       "front": {
-        "hits": 226,
-        "slots": 1515,
-        "observed": 0.149175,
+        "hits": 227,
+        "slots": 1520,
+        "observed": 0.149342,
         "theoretical": 0.142857,
         "ci95": [
-          0.132123,
-          0.168001
+          0.132309,
+          0.168144
         ],
-        "p_value": 0.48222,
+        "p_value": 0.469973,
         "significant": false
       },
       "back": {
-        "hits": 97,
-        "slots": 606,
-        "observed": 0.160066,
+        "hits": 98,
+        "slots": 608,
+        "observed": 0.161184,
         "theoretical": 0.166667,
         "ci95": [
-          0.133027,
-          0.191387
+          0.134098,
+          0.192525
         ],
-        "p_value": 0.702906,
+        "p_value": 0.744342,
         "significant": false
       },
-      "verdict": "与随机基线在 α=0.05 下不可区分 (前区 p=0.482, 后区 p=0.703)"
+      "verdict": "与随机基线在 α=0.05 下不可区分 (前区 p=0.47, 后区 p=0.744)"
     },
     {
       "model": "random",
-      "issues": 300,
-      "tickets": 303,
+      "issues": 301,
+      "tickets": 304,
       "front": {
-        "hits": 223,
-        "slots": 1515,
-        "observed": 0.147195,
+        "hits": 224,
+        "slots": 1520,
+        "observed": 0.147368,
         "theoretical": 0.142857,
         "ci95": [
-          0.130247,
-          0.165928
+          0.130438,
+          0.166077
         ],
-        "p_value": 0.629468,
+        "p_value": 0.615228,
         "significant": false
       },
       "back": {
-        "hits": 101,
-        "slots": 606,
-        "observed": 0.166667,
+        "hits": 102,
+        "slots": 608,
+        "observed": 0.167763,
         "theoretical": 0.166667,
         "ci95": [
-          0.139114,
-          0.198419
+          0.140168,
+          0.19953
         ],
-        "p_value": 1.0,
+        "p_value": 0.956595,
         "significant": false
       },
-      "verdict": "与随机基线在 α=0.05 下不可区分 (前区 p=0.629, 后区 p=1)"
+      "verdict": "与随机基线在 α=0.05 下不可区分 (前区 p=0.615, 后区 p=0.957)"
     },
     {
       "model": "transformer",
-      "issues": 1,
-      "tickets": 4,
+      "issues": 2,
+      "tickets": 5,
       "front": {
-        "hits": 4,
-        "slots": 20,
-        "observed": 0.2,
+        "hits": 6,
+        "slots": 25,
+        "observed": 0.24,
         "theoretical": 0.142857,
         "ci95": [
-          0.080658,
-          0.416017
+          0.114963,
+          0.434297
         ],
-        "p_value": 0.516334,
+        "p_value": 0.157491,
         "significant": false
       },
       "back": {
         "hits": 1,
-        "slots": 8,
-        "observed": 0.125,
+        "slots": 10,
+        "observed": 0.1,
         "theoretical": 0.166667,
         "ci95": [
-          0.022417,
-          0.470888
+          0.017876,
+          0.40415
         ],
         "p_value": 1.0,
         "significant": false
       },
-      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+      "verdict": "样本不足（仅 2 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
     },
     {
       "model": "xgboost",
-      "issues": 1,
-      "tickets": 4,
+      "issues": 2,
+      "tickets": 5,
       "front": {
-        "hits": 1,
-        "slots": 20,
-        "observed": 0.05,
+        "hits": 2,
+        "slots": 25,
+        "observed": 0.08,
         "theoretical": 0.142857,
         "ci95": [
-          0.008881,
-          0.236131
+          0.02222,
+          0.249661
         ],
-        "p_value": 0.345036,
+        "p_value": 0.567336,
         "significant": false
       },
       "back": {
         "hits": 1,
-        "slots": 8,
-        "observed": 0.125,
+        "slots": 10,
+        "observed": 0.1,
         "theoretical": 0.166667,
         "ci95": [
-          0.022417,
-          0.470888
+          0.017876,
+          0.40415
         ],
         "p_value": 1.0,
         "significant": false
       },
-      "verdict": "样本不足（仅 1 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
+      "verdict": "样本不足（仅 2 期），无法做统计判决；需要 ≥30 期回测才能给出置信区间较窄的结论。"
     }
   ]
 }
