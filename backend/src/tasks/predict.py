@@ -177,7 +177,10 @@ if __name__ == "__main__":
     parser.add_argument("--notify-only", action="store_true",
                         help="不重新预测，仅推送指定期号")
     parser.add_argument("--print-issue", action="store_true",
-                        help="把本次预测的期号写入 GITHUB_OUTPUT / stdout")
+                        help=(
+                            "把目标期号写入 GITHUB_OUTPUT 的 issue（供 chart/export）；"
+                            "并写入 predict_any_new=true|false，供 workflow 只在有新模型时发通知"
+                        ))
     args = parser.parse_args()
     if args.notify_only:
         if not args.issue:
@@ -186,11 +189,16 @@ if __name__ == "__main__":
     else:
         issue, any_new = run_predict(args.issue, args.force,
                                      notify_on_done=not args.no_notify)
-        if args.print_issue and any_new:
-            # any_new=False 时刻意不写 GITHUB_OUTPUT.issue，让后续 notify step 的
-            # `if: steps.pred.outputs.issue != ''` 自动跳过——这就是防重复通知的关键
+        if args.print_issue:
+            # issue 始终写出，避免幂等命中时 Render charts 拿不到 --predict-issue、
+            # 汇总图与 CDN 长期不更新；是否推送微信由 predict_any_new 单独门控
             out = os.environ.get("GITHUB_OUTPUT")
             if out:
                 with open(out, "a") as f:
                     f.write(f"issue={issue}\n")
+                    f.write(
+                        "predict_any_new="
+                        f"{'true' if any_new else 'false'}\n"
+                    )
             print(f"issue={issue}")
+            print(f"predict_any_new={'true' if any_new else 'false'}")

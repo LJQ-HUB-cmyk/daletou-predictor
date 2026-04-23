@@ -12,6 +12,11 @@ on:
     - cron: "15 11 * * 1,3,6"  # 19:15
     - cron: "45 11 * * 1,3,6"  # 19:45
   workflow_dispatch:
+    inputs:
+      force:
+        description: "强制重算本期并推送（true/false）。true=删除现有预测重新生成+强制发通知；false=幂等（已存在则跳过推送）"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -44,7 +49,12 @@ jobs:
       # --- 2) 生成本期预测（仅入库，不推送） ---
       - name: Generate predictions (db only)
         id: pred
-        run: python -m backend.src.tasks.predict --no-notify --print-issue
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          ARGS="--no-notify --print-issue"
+          if [ "$FORCE" = "true" ]; then ARGS="$ARGS --force"; fi
+          python -m backend.src.tasks.predict $ARGS
 
       # --- 3) 渲染全部图表（包含本期预测汇总 + 上期开奖命中图） ---
       - name: Render charts
@@ -68,11 +78,23 @@ jobs:
           python -m backend.src.utils.run_log --workflow predict --outcome "${{ job.status }}" --extra-json "$EXTRA"
 
       # --- 4) 先把图和数据库一起 commit，确保 CDN 可访问 ---
+      # file_pattern 必须写成多行（| 字面量），单行空格分隔会被 action 拼成一个 git add，
+      # 只要任一 pattern 不匹配（例如 docs/RUN_LOG.archive.jsonl 还没达到轮转阈值）整个 step 就 128 退出，
+      # 导致后面的 Notify / 通知链 全部 skip——这是实际让预测/开奖通知「全无」的历史根因
       - name: Commit charts + db (before notify)
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(data): update db & charts before notify"
-          file_pattern: data/img/*.png data/*.db data/lstm_state.pt data/lstm_meta.json data/transformer_state.pt data/transformer_meta.json data/xgboost_probs.npz docs/RUN_LOG.jsonl docs/RUN_LOG.archive.jsonl
+          file_pattern: |
+            data/img/*.png
+            data/*.db
+            data/lstm_state.pt
+            data/lstm_meta.json
+            data/transformer_state.pt
+            data/transformer_meta.json
+            data/xgboost_probs.npz
+            docs/RUN_LOG.jsonl
+            docs/RUN_LOG.archive.jsonl
 
       # --- 5) 等几秒让 raw.githubusercontent CDN 更新 ---
       - name: Wait for CDN
@@ -88,8 +110,9 @@ jobs:
         run: python -m backend.src.tasks.evaluate --notify-only --issue ${{ steps.eval.outputs.evaluated_issue }}
 
       # --- 7) 推送本期预测通知 ---
+      # issue 在幂等命中时也会写入（供 chart），通知仅在有新写入模型时发；force=true 时强制发
       - name: Notify predict
-        if: steps.pred.outputs.issue != ''
+        if: steps.pred.outputs.predict_any_new == 'true' || inputs.force == 'true'
         env:
           SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
           WEWORK_WEBHOOK: ${{ secrets.WEWORK_WEBHOOK }}

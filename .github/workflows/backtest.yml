@@ -165,18 +165,36 @@ jobs:
           fi
 
           # --- backtest 自身接力（心跳兼 bootstrap） ---
+          # 教训：曾出现 done=true 后仍以 ~2min/轮 空转接力，一天刷 >400 次 runner，
+          # 把 main 搞得很乱也浪费配额。治理规则：
+          #   done=false            → 必须接力（bootstrap 还没跑完）
+          #   done=true + 非开奖日  → 不接力（交给 heartbeat.yml 每 3h 兜底；
+          #                                非开奖日本来也没有 evaluate 窗口要守）
+          #   done=true + 开奖日    → 北京时间 >=18:00 才接力（提前 3h 守 21:30 evaluate 窗口）
           if [ ! -f data/.backtest_state.json ]; then
             echo "[auto] state 文件不存在，跳过 backtest 续跑"
             exit 0
           fi
           DONE=$(python -c "import json,sys; sys.stdout.write(str(json.load(open('data/.backtest_state.json'))['done']).lower())")
-          echo "[auto] backtest done=$DONE"
-          sleep 5
-          if [ "$DONE" = "true" ]; then
-            echo "[auto] backtest 已完成，仍接力作为心跳（让 evaluate 窗口判断能持续执行）"
+          hour_bj=$(TZ='Asia/Shanghai' date +'%H')
+          echo "[auto] backtest done=$DONE  hour_bj=$hour_bj  is_draw_day=$is_draw_day"
+
+          need_relay=false
+          if [ "$DONE" != "true" ]; then
+            need_relay=true
+            echo "[auto] → 需要接力：bootstrap 未完成"
+          elif [ "$is_draw_day" = "true" ] && [ "$hour_bj" -ge 18 ] && [ "$hour_bj" -le 23 ]; then
+            need_relay=true
+            echo "[auto] → 需要接力：开奖日 18:00-23:59，守 evaluate 窗口"
           else
-            echo "[auto] backtest 未完成，接力下一轮继续 bootstrap"
+            echo "[auto] → 不接力：done=true 且当前非开奖日/非守望时段，交给 heartbeat 兜底"
           fi
+
+          if [ "$need_relay" != "true" ]; then
+            exit 0
+          fi
+
+          sleep 5
           # 续跑必须保持 force=false，否则会把上一轮刚写入的记录删掉重算
           gh workflow run backtest.yml \
             --ref "$REF_NAME" \

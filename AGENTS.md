@@ -125,7 +125,7 @@ with open(os.path.expanduser("~/.git-credentials")) as f:
 - **改完 workflow 要测一次小数据**（比如 `start=-50`）再上全量，不然每次都等 5h 才知道 yml 写错了。
 - **别把 token 拼进 shell 命令**，用 Python `urllib` + headers 发请求更安全（terminal log 会被其他工具读）。
 - **GitHub schedule 不可信**：predict.yml 单一 cron 从未按时触发过；evaluate.yml 延迟 81 min。解法是一个 workflow 配多个 cron 时间点 + 任务代码幂等，而不是押注单点。
-- **`Notify predict` step 出现 `skipped` 不代表故障**：这是幂等设计的**正确行为**。当 DB 里已经有当期所有 9 个模型的预测（通常是前一次 predict run 已经预测过这期），`predict.py` 会把 `any_new` 置为 False，不往 `GITHUB_OUTPUT` 写 `issue`，于是 Notify step 的 `if: steps.pred.outputs.issue` 判定为假，被跳过。**判断是否真的"漏发通知"的正确姿势**：先查 `predictions` 表同期覆盖度（`SELECT issue, COUNT(DISTINCT model) FROM predictions GROUP BY issue ORDER BY issue DESC LIMIT 5`），再查该期号更早的 workflow run 是否成功 Notify 过。覆盖度 = 9 且更早有成功 Notify → 幂等命中，一切正常，不要重复触发。
+- **`Notify predict` step 出现 `skipped` 多半仍是幂等**：`--print-issue` 会始终写 `GITHUB_OUTPUT.issue`（让 chart 步骤能带 `--predict-issue`，避免「全跳过却不重绘汇总图」）；是否发微信由 `predict_any_new == true` 门控。当本期 9 模型预测已齐且无 `--force` 时 `predict_any_new` 为 false，Notify 会跳过。**判断是否真漏通知**：查 `predictions` 覆盖度 + 该期是否从未成功推送过；若 secrets 全空，日志会有 `[notify] 未配置通道或推送失败，跳过` 但 job 仍 success。
 - **GitHub schedule 几乎完全不工作**：这个 repo 的 predict.yml schedule 历史触发次数 = 0，evaluate.yml = 1。不能靠 cron 驱动业务。已改为事件链 + backtest 心跳触发，见下面"事件链"章节。
 
 ## 事件链（核心调度模型）
