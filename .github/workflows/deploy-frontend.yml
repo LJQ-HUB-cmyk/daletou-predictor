@@ -7,6 +7,15 @@ on:
       - "frontend/**"
       - "data/export/**"
       - ".github/workflows/deploy-frontend.yml"
+  # 关键：predict/evaluate/backtest 用 stefanzweifel/git-auto-commit-action 推的
+  # commit 是 GITHUB_TOKEN 身份，GitHub 官方故意**不触发**任何下游 push workflow
+  # （防无限循环）。所以即使 data/export/*.json 每轮都被 commit 进 main，上面
+  # 的 `paths: data/export/**` 也命不中。解法：订阅 workflow_run 事件，这是
+  # GitHub 明确允许的跨 workflow 触发方式，不受 GITHUB_TOKEN 限制。
+  workflow_run:
+    workflows: ["Predict Next Draw", "Evaluate Draw Result", "Walk-Forward Backtest"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -21,6 +30,8 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # workflow_run 触发时若 upstream 未成功则不部署（失败的 run 可能带坏数据）
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
