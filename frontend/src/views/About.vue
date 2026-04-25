@@ -86,9 +86,10 @@
         <li>数据源：500 彩票网（主），中国体育彩票官方 API（备）</li>
         <li>数据范围：<b>从 2007 年首次开奖至今</b>，共计 2800+ 期（大乐透全量历史）</li>
         <li>存储：SQLite 数据库（随仓库托管）</li>
-        <li>定时：GitHub Actions</li>
-        <li class="sub">· 每周一/三/六 北京时间 18:00 生成下期预测</li>
-        <li class="sub">· 每周一/三/六 北京时间 22:30 抓取开奖 + 评估 + 重新部署</li>
+        <li>更新机制：GitHub Actions（<b>事件链心跳</b>，不依赖单点 cron）</li>
+        <li class="sub">· backtest 工作流以“时间预算 + 自动接力”方式持续产生心跳</li>
+        <li class="sub">· 开奖日北京 21:30 之后，心跳会触发 evaluate：抓取开奖 → 评估 → 通知</li>
+        <li class="sub">· evaluate 成功后链式触发 predict：生成下一期预测 → 通知 → 前端自动部署</li>
       </ul>
     </section>
 

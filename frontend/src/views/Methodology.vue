@@ -199,10 +199,18 @@ use([
 
 const methodology = ref(null);
 const models = ref([]);
-const baseIdx = 2854;
+const meta = ref(null);
+
+const baseIdx = computed(() => {
+  // 仅用于示意图的 i 标签：用“当前库期数 - 5”做动态基准，避免硬编码漂移
+  const total = meta.value?.total_draws;
+  if (!total || Number.isNaN(Number(total))) return 0;
+  return Math.max(0, Number(total) - 5);
+});
 
 onMounted(async () => {
-  const d = await api.significance();
+  const [m, d] = await Promise.all([api.meta(), api.significance()]);
+  meta.value = m;
   methodology.value = d?.methodology || null;
   const order = MODEL_ORDER;
   const items = [...(d?.models || [])];
