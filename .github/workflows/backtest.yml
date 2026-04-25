@@ -121,14 +121,51 @@ jobs:
             docs/RUN_LOG.jsonl
             docs/RUN_LOG.archive.jsonl
 
-      - name: Notify progress / completion / failure
+      - name: Decide whether to notify (reduce spam)
         if: always()
+        id: notify_gate
+        env:
+          BACKTEST_OUTCOME: ${{ steps.backtest.outcome }}
+        run: |
+          notify="false"
+          reason="skip"
+
+          # 失败/取消/超时等：永远通知
+          outcome="$(echo "${BACKTEST_OUTCOME:-success}" | tr '[:upper:]' '[:lower:]')"
+          if [ -n "$outcome" ] && [ "$outcome" != "success" ]; then
+            notify="true"
+            reason="outcome=$outcome"
+          else
+            # 成功时：仅在回测 done=true 才通知（进度心跳不再刷屏）
+            if [ -f data/.backtest_state.json ]; then
+              done=$(python -c "import json; print(str(bool(json.load(open('data/.backtest_state.json')).get('done'))).lower())" 2>/dev/null || echo "false")
+              if [ "$done" = "true" ]; then
+                notify="true"
+                reason="done=true"
+              fi
+            fi
+          fi
+
+          echo "notify=$notify" >> "$GITHUB_OUTPUT"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+          echo "[notify_gate] notify=$notify reason=$reason"
+
+      - name: Notify progress / completion / failure
+        if: always() && steps.notify_gate.outputs.notify == 'true'
         env:
           SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
           WEWORK_WEBHOOK: ${{ secrets.WEWORK_WEBHOOK }}
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
           BACKTEST_OUTCOME: ${{ steps.backtest.outcome }}
         run: python -m backend.src.tasks.notify_backtest
+
+      - name: Freshness check (alert only)
+        if: always()
+        env:
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+          WEWORK_WEBHOOK: ${{ secrets.WEWORK_WEBHOOK }}
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+        run: python -m backend.src.tasks.check_freshness || true
 
       - name: Auto-dispatch (backtest 接力 + evaluate 窗口心跳)
         # GitHub Actions 的 schedule 对这个 repo 基本失效（predict 0 次、evaluate 1 次/月），
