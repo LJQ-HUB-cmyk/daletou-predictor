@@ -104,6 +104,14 @@ git log --since="7 days ago" --oneline -- docs/RUN_LOG.jsonl
 > 每次进入本 repo 完成反思后，**只在有新发现**时追加一条。无新发现就别污染。
 > 格式：`### [YYYY-MM-DD HH:MM 模型名] 一行总结` + 必要的 bullet。
 
+### [2026-04-25 13:57 Claude] 反思引擎加自愈通道
+
+- `reflect.py` 的 finding 增加可选 `heal` 字段，写到 `heal_actions.txt`（gitignore 中）
+- `reflect.yml` 加 `Self-heal` step，**白名单**只允许 `heartbeat.yml / backtest.yml` 被自动 dispatch
+- 当前唯一自愈：R1 命中且 workflow=backtest → dispatch `heartbeat.yml` 救心跳
+- predict / evaluate 失败**不**自愈（代码问题自动重跑没用，会刷屏）
+- 从「会写病历的医生」升级为「能下急救处方的医生」，但仍不开胸（不改业务代码）
+
 ### [2026-04-25 13:54 Claude] 上线半自动反思（reflect.py + reflect.yml）
 
 - 加了 `backend/src/utils/reflect.py`：纯本地规则识别 R1 连续失败 / R2 进度卡死 / R3 性能退化，幂等指纹 fp:XXXXXXXX

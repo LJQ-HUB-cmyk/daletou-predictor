@@ -87,8 +87,11 @@ def rule_consecutive_failures(runs: list[dict[str, Any]]) -> list[dict[str, str]
     """
     规则 R1：同一 workflow 连续 ≥ 2 次 failure / cancelled
 
+    若命中 backtest 连续失败，附带 heal 字段建议跑 heartbeat 复活心跳。
+    heal 不在本脚本里执行，由 reflect.yml 的「Self-heal」step 受控调用。
+
     @param runs 时间正序
-    @returns 发现列表，每条含 title/body/fingerprint
+    @returns 发现列表，每条含 title/body/fingerprint，可选 heal
     """
     findings: list[dict[str, str]] = []
     by_wf: dict[str, list[dict[str, Any]]] = {}
@@ -104,7 +107,7 @@ def rule_consecutive_failures(runs: list[dict[str, Any]]) -> list[dict[str, str]
         if (last.get("outcome") in bad) and (prev.get("outcome") in bad):
             fp = _fingerprint("R1", wf, last.get("outcome", ""))
             urls = [r.get("run_url") for r in rs[-3:] if r.get("run_url")]
-            findings.append({
+            finding: dict[str, str] = {
                 "fingerprint": fp,
                 "title": f"{wf} 连续失败 ({prev.get('outcome')}, {last.get('outcome')})",
                 "body": (
@@ -115,7 +118,11 @@ def rule_consecutive_failures(runs: list[dict[str, Any]]) -> list[dict[str, str]
                     f"- 规避：暂未知；若是 dispatch 失败可手动 `gh workflow run {wf}.yml`\n"
                     f"- 修复：未\n"
                 ),
-            })
+            }
+            # 自愈：只对 backtest 链开自愈通道（其他 workflow 失败往往是代码问题，自动重跑没意义）
+            if wf == "backtest":
+                finding["heal"] = "heartbeat.yml"
+            findings.append(finding)
     return findings
 
 
@@ -274,7 +281,20 @@ def main() -> int:
         _append_known_issue(f)
 
     _append_ai_notes_reflection(new_findings, len(runs))
-    print(f"[reflect] done. new={len(new_findings)}")
+
+    # 把自愈建议写到 heal_actions.txt，供 reflect.yml 的 Self-heal step 读取
+    # 每行一个 workflow 文件名（如 heartbeat.yml）。文件存在 = 有自愈动作要执行
+    heal_targets = sorted({f["heal"] for f in new_findings if f.get("heal")})
+    heal_file = REPO_ROOT / "heal_actions.txt"
+    if heal_targets:
+        heal_file.write_text("\n".join(heal_targets) + "\n", encoding="utf-8")
+        print(f"[reflect] heal targets: {heal_targets} -> {heal_file}")
+    else:
+        # 清掉上一轮残留，避免误触发
+        if heal_file.exists():
+            heal_file.unlink()
+
+    print(f"[reflect] done. new={len(new_findings)} heal={len(heal_targets)}")
     return 0
 
 

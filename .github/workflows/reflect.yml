@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: write
+  actions: write # 自愈 step 需要 dispatch heartbeat.yml 等
 
 concurrency:
   group: reflect
@@ -43,6 +44,34 @@ jobs:
 
       - name: Run reflect.py
         run: python -m backend.src.utils.reflect
+
+      - name: Self-heal (dispatch suggested workflows)
+        # reflect.py 把要"救"的 workflow 写进 heal_actions.txt（每行一个文件名）。
+        # 当前规则：仅 R1 命中 backtest 连续失败时，会建议 dispatch heartbeat.yml。
+        # 受控点：只允许白名单内的 workflow 被自愈触发，避免反思引擎被恶意输入诱导触发任意 workflow。
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ ! -f heal_actions.txt ]; then
+            echo "[heal] 无需自愈"
+            exit 0
+          fi
+          ALLOWED="heartbeat.yml backtest.yml"
+          while IFS= read -r wf; do
+            wf=$(echo "$wf" | xargs)
+            [ -z "$wf" ] && continue
+            case " $ALLOWED " in
+              *" $wf "*)
+                echo "[heal] dispatch $wf"
+                gh workflow run "$wf" --ref main 2>&1 || echo "[heal] dispatch $wf 失败"
+                ;;
+              *)
+                echo "[heal] 拒绝：$wf 不在白名单 ($ALLOWED)"
+                ;;
+            esac
+          done < heal_actions.txt
 
       - name: Commit AI reflections (if any change)
         uses: stefanzweifel/git-auto-commit-action@v5
