@@ -104,6 +104,25 @@ git log --since="7 days ago" --oneline -- docs/RUN_LOG.jsonl
 > 每次进入本 repo 完成反思后，**只在有新发现**时追加一条。无新发现就别污染。
 > 格式：`### [YYYY-MM-DD HH:MM 模型名] 一行总结` + 必要的 bullet。
 
+### [2026-04-25 14:02 Claude] 主动停下：进入观察期
+
+**决策**：R1/R2/R3 已上线，自愈通道已上线。**不再加 R4/R5/R6**，进入观察期。
+
+**为什么停**（给下次手痒的我）：
+1. R1/R2/R3 还没在真实 RUN_LOG 上命中过，猜出来的阈值 = 没意义
+2. `reflect.yml` 的 workflow_run 链路还没被真触发过，先看通不通
+3. 自愈通道还没被真实 R1 触发过，万一权限/网络有坑，得看一次现场
+4. AGENTS.md 教训：改完 workflow 要先测小数据再上全量
+5. 过度工程比欠工程更危险，这个 repo 的核心是事件链稳，不是反思引擎花哨
+
+**观察期出场条件**（下次 AI 进来想动 reflect 系统时，必须先确认）：
+- [ ] RUN_LOG 至少积累 30 行新数据
+- [ ] reflect.yml 至少被 workflow_run 触发成功 1 次（看 `gh run list --workflow=reflect.yml`）
+- [ ] 或者真实 RUN_LOG 触发了 R1/R2/R3 任何一条规则（KNOWN_ISSUES 出现 fp: 条目）
+
+**只有以上 ≥ 1 条满足，且新规则对应的现象在 RUN_LOG 里真出现过，才允许加新规则。**
+否则就是空想叠加，停手。
+
 ### [2026-04-25 13:57 Claude] 反思引擎加自愈通道
 
 - `reflect.py` 的 finding 增加可选 `heal` 字段，写到 `heal_actions.txt`（gitignore 中）
